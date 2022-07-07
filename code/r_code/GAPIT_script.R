@@ -11,6 +11,11 @@ gene_shortlist <- na.omit(t(read.csv2('gene_output_for_gapit.csv',
 print('GAPIT loaded, loading first prediction results')
 
 Pred_table <- read.csv('GAPIT_output/GAPIT.MLM.AT1G01010.Pred.result.csv')$Pred
+
+# the initial prediction column was obtained from the GAPIT run on the very first gene in the phenotype table.
+# it acts as an example output, as well as a dummy initial file, onto which further results are attached during the loop.
+# the column of the dummy file is deleted at line 40 because AT1G01010 is not in the target gene list.
+
 print('Initial prediction column loaded. Starting BLUP loop...')
 
 Kinship_matrix <- read.csv('GAPIT_output/GAPIT.Kin.Zhang.csv', header = FALSE) # prevents kinship recalculation at every run
@@ -32,7 +37,7 @@ for (i in gene_shortlist) {
   print('DONE')
   print('-----------------------------------------------------')
 }
-Pred_table <- Pred_table[,-1]
+Pred_table <- Pred_table[,-1] # removing the dummy / init column
 saveRDS(Pred_table, 'Pred_table_shortlist_cut.rds')
 write.csv(Pred_table,'data/Pred_table.csv')
 print('saved prediciton table for all shortlisted genes')
