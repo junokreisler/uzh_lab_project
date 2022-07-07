@@ -1,11 +1,11 @@
 acc_names <- t(read.csv('acc_excerpt.csv')) 
-files <- list.files(path="/srv/kenlab/ejansone/SNP_Table",
+files <- list.files(path="/srv/kenlab/ejansone/SNP_Table", # location of folder with all chunks to be added
                     pattern="*.csv.gz", full.names=TRUE, recursive=FALSE)
 cat(length(files), 'files found')
 
 print('Opening initial table...')
 
-SNP_table <- read.table('SNP_table_init.csv.gz', header = FALSE, sep= ',')
+SNP_table <- read.table('SNP_table_init.csv.gz', header = FALSE, sep= ',') # chunk no. 000 renamed
 SNP_table <- cbind(acc_names, SNP_table)
 cat('Initial table with dimensions', dim(SNP_table), 'opened, saving as RDS...')
 saveRDS(SNP_table, 'SNP_Table_init.rds')
