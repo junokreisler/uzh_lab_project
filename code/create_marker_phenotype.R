@@ -1,12 +1,12 @@
 #################################################
-# Create marker info for GAPIT
+# Create phenotype info for GAPIT
 #################################################
 
 print('Reading GSEA data')
 
 GSEA_data <- read.table('GSE80744_normCounts.tsv', header = TRUE)
 gene_ids <- GSEA_data['gene_id']
-acc_names <- t(read.csv('acc_excerpt.csv'))
+acc_names <- t(read.csv('acc_excerpt.csv')) # common accessions between GSEA and AraGWAS
 GSEA_data <- as.data.frame(t(GSEA_data[,acc_names]))
 colnames(GSEA_data) <- t(gene_ids)
 GSEA_data <- cbind(rownames(GSEA_data), GSEA_data)
