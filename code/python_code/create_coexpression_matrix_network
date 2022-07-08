@@ -1,0 +1,141 @@
+# create coexpression mutual rank matrix
+import pandas as pd
+
+def mutual_rank(a,b):
+    return np.sqrt(a*b)
+
+GSEA_filename = 'GSE80744_ath1001_tx_norm_2016-04-21-UQ_gNorm_normCounts_k4.tsv.gz'
+#filename unchanged from extract_from_genotype_data
+
+GSEA_data = pd.read_csv(GSEA_filename, delimiter='\t')
+
+gene_list = GSEA_data['gene_id'] # full gene list
+accession_corr_all_genes = GSEA_data.corr() # likeness between expression of genes over different accessions
+
+########################################################################
+# extracting relevant genes and accessions from GSEA
+########################################################################
+import numpy as np
+
+with open('gene_output_for_gapit.csv', 'r') as f:
+    genes_raw = f.read()
+
+with open('acc_excerpt.csv') as f:
+    for line in f:
+        acc_raw = line
+
+gene_targets = []
+gene_name = ''
+for chr in genes_raw:
+    if chr != ',':
+        gene_name += chr
+    else:
+        gene_targets.append(gene_name)
+        gene_name = ''
+
+acc_targets = []
+acc_name = ''
+for chr in acc_raw[:-1]: # excluding newline at the end of line
+    if chr != ',':
+        acc_name += chr
+    else:
+        acc_targets.append(acc_name)
+        acc_name = ''
+acc_targets.append(acc_name)
+
+target_genes = GSEA_data[GSEA_data['gene_id'].isin(gene_targets)]
+target_genes = target_genes.T.reset_index()
+target_matrix = target_genes[target_genes['index'].isin(acc_targets)]
+target_matrix = target_matrix.set_index('index')
+target_matrix.columns = gene_targets
+
+########################################################################
+# create coexpression matrix for the relevant genes
+# create mutual rank matrix from ranks of rows and columns
+########################################################################
+gene_correlation = target_matrix.astype(float).corr(method = 'pearson')
+acc_matrix = target_matrix.astype(float).T
+acc_correlation = acc_matrix.corr(method = 'pearson')
+
+mutual_rank_gene_matrix = len(gene_targets) - mutual_rank(gene_correlation.rank(axis=0),gene_correlation.rank(axis=1))
+mutual_rank_acc_matrix = len(acc_targets) - mutual_rank(acc_correlation.rank(axis=0),acc_correlation.rank(axis=1))
+
+########################################################################
+# create coexpression matrix from GAPIT prediction table
+########################################################################
+GAPIT_table = 'Pred_table.csv'
+GAPIT_data = pd.read_csv(GAPIT_table)
+GAPIT_data = GAPIT_data.iloc[:,1:] # remove index column
+# !!! to make sure the accession order is correct, run these lines
+# GAPIT_Kin_Zhang <- read.csv('gapit_output/GAPIT.Kin.Zhang.csv', header = FALSE)
+# write.csv(GAPIT_Kin_Zhang[1],'acc_original_order.csv')
+# after GAPIT is done. however, for overall coexpression matrix creation, it doesn't matter.
+GAPIT_accs = pd.read_csv('acc_excerpt_original.csv')
+GAPIT_data.index = GAPIT_accs.T
+
+GAPIT_correlation = GAPIT_data.astype(float).corr(method = 'pearson')
+
+GAPIT_mutual_rank_matrix = len(gene_targets) - mutual_rank(GAPIT_correlation.rank(axis=0),GAPIT_correlation.rank(axis=1))
+
+########################################################################
+# make network edgelist with top x ranks / top correlation values
+# visualize network in a graph with draw_networkx or cytoscape
+########################################################################
+def dataframe_to_edgelist(dataframe, top_n, mr = True):
+    edgelist = []
+    print('Dataframe dimensions:', len(dataframe),len(dataframe.T))
+    n_nodes = len(dataframe)
+    if len(dataframe) != len(dataframe.T):
+        print('Warning: dataframe dimensions not of equal size. \nChoosing the smaller dimension.')
+        if len(dataframe) > len(dataframe.T):
+            n_nodes = len(dataframe.T)
+    if mr:
+        if top_n >= n_nodes:
+            return print('ERROR: treshold above number of nodes')
+        elif top_n < 1:
+            return print('ERROR: please provide a number between 1 and',n_nodes)
+        else:
+            for i in range(n_nodes): # rows
+                for j in range(n_nodes): # columns
+                    if (i != j) and (dataframe.iloc[i,j] <= top_n):
+                        edgelist.append((dataframe.index[i], dataframe.columns[j], dataframe.iloc[i,j]))
+            return edgelist
+    if not mr:
+        if top_n >= 1 or top_n <= 0:
+            return print('ERROR: non-MR matrix: Please choose threshold value between and not including 0 and 1.')
+        else:
+            for i in range(n_nodes): # rows
+                for j in range(n_nodes): # columns
+                    if (i != j) and (abs(dataframe.iloc[i,j]) >= top_n):
+                        edgelist.append((dataframe.index[i], dataframe.columns[j], dataframe.iloc[i, j]))
+            return edgelist
+
+
+import networkx as nx
+from matplotlib import pyplot as plt
+import scipy
+
+top_n_mr = 5 # top edges in MR matrix
+corr_threshold = 0.75 # selection threshold in correlation matrix, absolute value
+
+# remove comment sign before nx.draw_networkx(...) to preview graph
+
+GSEA_graph_mr = nx.Graph()
+GSEA_graph_mr.add_weighted_edges_from(dataframe_to_edgelist(mutual_rank_gene_matrix, top_n_mr, mr = True))
+#nx.draw_networkx(GSEA_graph_mr)
+nx.write_gml(GSEA_graph_mr, 'GSEA_graph_mr.gml')
+
+GSEA_graph_corr = nx.Graph()
+GSEA_graph_corr.add_weighted_edges_from(dataframe_to_edgelist(gene_correlation, corr_threshold, mr = False))
+#nx.draw_networkx(GSEA_graph_corr)
+nx.write_gml(GSEA_graph_corr, 'GSEA_graph_corr.gml')
+
+GAPIT_graph_mr = nx.Graph()
+GAPIT_graph_mr.add_weighted_edges_from(dataframe_to_edgelist(GAPIT_mutual_rank_matrix, top_n_mr, mr = True))
+#nx.draw_networkx(GAPIT_graph_mr)
+nx.write_gml(GAPIT_graph_mr, 'GAPIT_graph_mr.gml')
+
+GAPIT_graph_corr = nx.Graph()
+GAPIT_graph_corr.add_weighted_edges_from(dataframe_to_edgelist(GAPIT_correlation, corr_threshold, mr = False))
+#nx.draw_networkx(GAPIT_graph_corr)
+nx.write_gml(GAPIT_graph_corr, 'GAPIT_graph_corr.gml')
