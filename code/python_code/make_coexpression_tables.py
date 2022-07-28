@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import os
 import matrix_network_functions as func
-from sklearn.metrics import jaccard_score as js
-
 
 # 1)   from an input file, read the list of genes of interest
 # 1.1) input file format - comma-separated word list
@@ -43,7 +41,7 @@ gene_list_sorted = list(target_matrix.index)
 for gene in gene_list_sorted:
     pred_filenames.append('GAPIT.MLM.'+gene+'.Pred.result.csv')
 
-pred_table = assemble_prediction_table(gene_list_sorted)
+pred_table = func.assemble_prediction_table(gene_list_sorted)
 pred_table.to_csv(output_folder+'/2_GAPIT_prediction_log2_'+gene_list_path+'.csv')
 
 # 3)   export
@@ -80,6 +78,3 @@ common_connections_corr = target_corr_bin * pred_corr_bin
 common_connections_mr = target_mr_bin * pred_mr_bin
 common_connections_corr.to_csv(output_folder+'/5_COMMON_binary_shortlist_corr_'+gene_list_path+'.csv')
 common_connections_mr.to_csv(output_folder+'/5_COMMON_binary_shortlist_mr_'+gene_list_path+'.csv')
-
-
-similarity = js(np.array(target_corr_bin), np.array(pred_corr_bin), average = 'samples')
