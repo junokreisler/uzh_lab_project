@@ -1,4 +1,4 @@
-This folder contains GAPIT predictions for 643 genes, based on log2-transformed GSEA data.
+This folder contains GAPIT predictions for 641 genes, based on log2-transformed GSEA data.
 
 The following GO Categories are covered:
 
