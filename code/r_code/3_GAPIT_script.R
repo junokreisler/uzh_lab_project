@@ -1,5 +1,5 @@
 marker_info <- readRDS('marker_information_for_GAPIT.rds')
-GSEA_data <- readRDS('GSEA_data_for_GAPIT.rds')
+GSEA_data <- readRDS('GSEA_data_for_GAPIT_log2.rds')
 SNP_table <- readRDS('SNP_Table_full_AraGWAS.rds')
 print('SNP table loaded.')
 
