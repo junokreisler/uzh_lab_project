@@ -24,7 +24,8 @@ target_mr_bin = pd.read_csv(output_folder+'/5_GSEA_binary_shortlist_mr_'+gene_li
 pred_corr_bin = pd.read_csv(output_folder+'/5_GAPIT_binary_shortlist_corr_'+gene_list_path+'.csv')
 pred_mr_bin = pd.read_csv(output_folder+'/5_GAPIT_binary_shortlist_mr_'+gene_list_path+'.csv')
 
-# 2) create graph objects and export them as .gml
+# 2) create graph objects and export them as .gml 
+# View obtained graphs in Cytoscape (Import Network from File); Layout => Apply Preferred Layout
 
 # select correlation treshold for the correlation matrix
 corr_threshold = 0.5
