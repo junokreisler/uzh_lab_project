@@ -45,13 +45,11 @@ for (i in gene_shortlist) {
     # SNP.MAF=0.05,
     model="gBLUP")
   Pred_table <- cbind(Pred_table, BLUP_test$Pred$Prediction)
-  print('one BLUP done.')
-  print(Sys.time()-t_start)
+
   print('-----------------------------------------------------')
   print(i)
-  colnames(Pred_table)[length(colnames(Pred_table))] <- i
-  saveRDS(Pred_table, 'Pred_table_flowering_log2_phenotype.rds')
-  print('DONE, saved interim Pred_table_flowering_log2_phenotype.rds')
+  print('one BLUP done.')
+  print(Sys.time()-t_start)
   print('-----------------------------------------------------')
 }
 saveRDS(Pred_table, 'Pred_table_flowering_log2_phenotype.rds')
