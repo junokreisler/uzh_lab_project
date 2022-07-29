@@ -3,6 +3,7 @@ import numpy as np
 import matrix_network_functions as func
 from sklearn.metrics import jaccard_score as js
 
+gene_list_path = 'flowering_list_full.txt'
 output_folder = 'flowering_output'
 
 try:
