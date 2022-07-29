@@ -3,6 +3,13 @@ import numpy as np
 import matrix_network_functions as func
 from sklearn.metrics import jaccard_score as js
 
+output_folder = 'flowering_output'
+
+try:
+    os.mkdir(output_folder)
+except:
+    print('Output folder', output_folder, 'already exists')
+
 # 3.1) coexpression tables
 
 target_log2_coexpression = pd.read_csv(output_folder+'/3_GSEA_correlation_'+gene_list_path+'.csv').set_index('gene_id')
